@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لوحة التحكم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>
+:root{--primary:#0e7c86;--accent:#ff5a36;--bg:#eef3f4;--text:#12262b;--card:#ffffff;
+ --a-bg:#f1f5f9;--a-card:#fff;--a-text:#0f172a;--a-line:#e2e8f0;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--a-bg:#0b1220;--a-card:#131c2e;--a-text:#e5edf8;--a-line:#26324a}}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{font-family:'Tajawal',sans-serif;margin:0;background:var(--bg);color:var(--text)}
+h1,h2,h3,.hd{font-family:'Readex Pro','Tajawal',sans-serif}
+#admin{background:var(--a-bg);color:var(--a-text);min-height:100vh}
+.ad .card{background:var(--a-card);border:1px solid var(--a-line);border-radius:14px}
+.ad input,.ad textarea,.ad select{width:100%;background:var(--a-bg);color:var(--a-text);border:1px solid var(--a-line);border-radius:10px;padding:.55rem .75rem;font:inherit}
+.ad input[type=color]{padding:2px;height:42px;cursor:pointer}
+.ad label{font-size:.85rem;font-weight:700;display:block;margin-bottom:.25rem}
+.tab{display:flex;gap:.6rem;align-items:center;padding:.65rem .9rem;border-radius:10px;color:#cbd5e1;cursor:pointer;white-space:nowrap;width:100%;text-align:start}
+.tab:hover{background:#1e293b}.tab.on{background:var(--primary);color:#fff}
+.btn{background:var(--primary);color:#fff;border-radius:10px;padding:.55rem 1rem;font-weight:700;cursor:pointer}
+.btn.o{background:transparent;color:var(--a-text);border:1px solid var(--a-line)}
+.btn.r{background:#dc2626}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.prod-img{border-radius:28px 28px 28px 80px;box-shadow:0 30px 60px -30px color-mix(in srgb,var(--primary) 60%,transparent)}
+#lb{display:none}#lb.on{display:flex}
+</style>
+<meta name="robots" content="noindex">
+</head>
+<body>
+<div id="gate" class="ad hidden min-h-screen flex items-center justify-center p-4" style="background:var(--a-bg);color:var(--a-text)">
+ <form id="gf" class="card p-6 w-full max-w-sm space-y-3">
+  <h1 id="gt" class="text-xl font-bold hd"></h1>
+  <div><label>اسم المستخدم</label><input name="username" required minlength="3" autocomplete="username"></div>
+  <div><label>كلمة المرور (٨ أحرف على الأقل)</label><input name="password" type="password" required minlength="8" id="gp"></div>
+  <button class="btn w-full" id="gb"></button><p id="ge" class="text-red-500 text-sm" role="alert"></p>
+ </form></div>
+<div id="admin" class="ad hidden">
+  <div class="lg:flex">
+    <aside class="bg-slate-900 lg:w-64 lg:min-h-screen lg:sticky lg:top-0 lg:h-screen p-3 lg:p-4 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto" id="side"></aside>
+    <main class="flex-1 p-4 lg:p-8 max-w-3xl w-full">
+      <div class="flex items-center justify-between mb-5 gap-2 flex-wrap">
+        <h1 id="ptitle" class="text-2xl font-bold"></h1>
+        <div class="flex gap-2 items-center"><span id="ss" class="text-sm opacity-70"></span><a href="/" target="_blank" class="btn o">👁 عرض الصفحة</a><button class="btn o" data-out>خروج</button></div>
+      </div>
+      <div id="panel" class="card p-5 space-y-4"></div>
+      <p class="text-sm opacity-70 mt-4">كل التعديلات بتتحفظ تلقائياً في قاعدة البيانات (data.db) وبتظهر فوراً في الصفحة الرئيسية.</p>
+      <button id="reset" class="btn r mt-4">استرجاع الإعدادات الافتراضية</button>
+    </main>
+  </div>
+</div>
+
+<script src="/shared.js"></script>
+<script>
+const api=(u,m='GET',b)=>fetch('/api/'+u,{method:m,headers:{'Content-Type':'application/json'},body:b&&JSON.stringify(b)}).then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'خطأ');return j});
+let st;const save=()=>{clearTimeout(st);$('#ss').textContent='جارٍ الحفظ…';st=setTimeout(async()=>{try{await api('settings','PUT',S);$('#ss').textContent='✓ تم الحفظ'}catch(e){$('#ss').textContent='⚠ '+e.message}},500)};
+const TABS=[['general','⚙️','الإعدادات العامة'],['colors','🎨','الألوان'],['product','📦','المنتج'],['price','💰','السعر والخصم'],['features','✨','المميزات'],['gallery','🖼','معرض الصور'],['footer','🔻','الفوتر'],['countdown','⏳','المؤقت التنازلي'],['bundles','📦','الباقات'],['shipping','🚚','الشحن'],['trust','🛡','شريط الثقة'],['reviews','⭐','التقييمات'],['faq','❓','الأسئلة الشائعة'],['track','📈','التتبع والإعلانات'],['notify','🔔','إشعارات تليجرام'],['order','🛒','الطلب والواتساب'],['orders','📋','الطلبات'],['account','🔐','الحساب']];
+let tab='general';
+const get=(p)=>p.split('.').reduce((o,k)=>o?.[k],S);
+function set(p,v){const k=p.split('.');let o=S;for(let i=0;i<k.length-1;i++)o=o[k[i]];o[k[k.length-1]]=v}
+const F=(l,p,t='text')=>`<div><label>${l}</label>${t==='area'?`<textarea rows="3" data-p="${p}">${esc(get(p))}</textarea>`:`<input type="${t}" data-p="${p}" ${t==='number'?'data-n="1" min="0"':''} value="${esc(get(p))}">`}</div>`;
+const rm=(a,i)=>`<button class="btn r" data-act="${a}" data-i="${i}" aria-label="حذف">🗑</button>`;
+const PANELS={
+ general:()=>F('اسم الموقع','siteName')+`<div><label>شعار الموقع</label><img src="${esc(logoSrc())}" class="h-16 w-16 rounded-xl mb-2 object-contain" alt=""><input type="file" accept="image/*" data-up="logo"><button class="btn o mt-2" data-act="resetLogo">استخدام شعار السماعة الافتراضي</button></div>`+F('عنوان الصفحة الرئيسي','heroTitle')+F('وصف قصير تحت العنوان','heroSub','area')+F('نص زر الطلب','cta'),
+ colors:()=>`<div class="grid grid-cols-2 sm:grid-cols-3 gap-4">`+[['primary','اللون الأساسي'],['accent','لون التمييز والسعر'],['bg','خلفية الصفحة'],['text','لون النص والفوتر'],['card','خلفية البطاقات']].map(([k,l])=>F(l,'colors.'+k,'color')).join('')+`</div>`,
+ product:()=>F('اسم المنتج','productName')+F('شارة العرض (اتركها فاضية لإخفائها)','badge')+F('وصف المنتج','desc','area')+`<div><label>الصورة الرئيسية</label><img src="${esc(S.images[0]||'')}" class="w-40 rounded-xl mb-2" alt=""><input type="file" accept="image/*" data-up="main"></div>`,
+ price:()=>`<div class="grid sm:grid-cols-3 gap-4">${F('السعر بعد الخصم','price','number')}${F('السعر قبل الخصم','oldPrice','number')}${F('العملة','currency')}</div><p class="card p-3">نسبة الخصم الحالية: <b>${S.oldPrice>S.price?Math.round((1-S.price/S.oldPrice)*100):0}٪</b></p>`,
+ features:()=>F('عنوان القسم','featTitle')+S.features.map((f,i)=>`<div class="card p-3 space-y-2"><div class="grid grid-cols-4 gap-2"><div>${F('أيقونة','features.'+i+'.icon')}</div><div class="col-span-3">${F('العنوان','features.'+i+'.title')}</div></div>${F('الوصف','features.'+i+'.text')}${rm('delFeat',i)}</div>`).join('')+`<button class="btn" data-act="addFeat">+ إضافة ميزة</button>`,
+ gallery:()=>F('عنوان القسم','galTitle')+`<p class="text-sm opacity-70">أول صورة هي صورة المنتج الرئيسية في الصفحة.</p><div class="grid grid-cols-2 sm:grid-cols-3 gap-3">${S.images.map((s,i)=>`<div class="card p-2 space-y-2"><img src="${esc(s)}" alt="" class="rounded-lg aspect-square object-cover w-full">${i>0?`<button class="btn o w-full" data-act="mainImg" data-i="${i}">اجعلها رئيسية</button>`:'<div class="text-center text-sm font-bold">رئيسية</div>'}${rm('delImg',i)}</div>`).join('')}</div><div><label>إضافة صور</label><input type="file" accept="image/*" multiple data-up="add"></div>`,
+ footer:()=>F('نص الفوتر','footerText','area')+`<div class="grid sm:grid-cols-2 gap-4">${F('رقم الهاتف','phone')}${F('البريد الإلكتروني','email')}</div>`+S.links.map((l,i)=>`<div class="card p-3 grid grid-cols-5 gap-2 items-end"><div class="col-span-2">${F('النص','links.'+i+'.t')}</div><div class="col-span-2">${F('الرابط','links.'+i+'.u')}</div>${rm('delLink',i)}</div>`).join('')+`<button class="btn" data-act="addLink">+ إضافة رابط</button>`
+};
+function renderAdmin(){
+ $('#side').innerHTML=`<div class="hidden lg:block text-white hd font-bold text-lg px-2 pb-3">لوحة التحكم</div>`+TABS.map(([k,i,t])=>`<button class="tab ${k===tab?'on':''}" data-tab="${k}"><span>${i}</span>${t}</button>`).join('');
+ const t=TABS.find(x=>x[0]===tab);$('#ptitle').textContent=t[2];$('#panel').innerHTML=PANELS[tab]();
+}
+function compress(file,max=900,png){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(png?c.toDataURL('image/png'):c.toDataURL('image/jpeg',.82))};im.src=r.result};r.readAsDataURL(file)})}
+
+document.addEventListener('input',e=>{const p=e.target.dataset?.p;if(!p)return;set(p,e.target.dataset.n?Number(e.target.value):e.target.value);save();if(tab==='price')$('#panel p.card b').textContent=S.oldPrice>S.price?Math.round((1-S.price/S.oldPrice)*100)+'٪':'0٪'});
+document.addEventListener('change',async e=>{const u=e.target.dataset?.up;if(!u)return;
+ const files=[...e.target.files];for(const f of files){const d=await putImg(await compress(f,u==='logo'?256:900,u==='logo'));if(u==='main')S.images[0]=d;else if(u==='logo')S.logoImg=d;else S.images.push(d)}save();renderAdmin()});
+document.addEventListener('click',e=>{
+ const lb=e.target.closest('[data-lb]');if(lb){$('#lbi').src=S.images[lb.dataset.lb];$('#lb').classList.add('on');return}
+ if(e.target.closest('#lb')){$('#lb').classList.remove('on');return}
+ const tb=e.target.closest('[data-tab]');if(tb){tab=tb.dataset.tab;renderAdmin();return}
+ const a=e.target.closest('[data-act]');if(!a)return;const i=+a.dataset.i;
+ ({resetLogo:()=>{S.logoImg=''},plus:()=>{S.countdown.end=new Date(Date.now()+i*864e5).toISOString()},addFeat:()=>S.features.push({icon:'⭐',title:'ميزة جديدة',text:'وصف الميزة'}),
+   delFeat:()=>S.features.splice(i,1),
+   addLink:()=>S.links.push({t:'رابط جديد',u:'#'}),
+   delLink:()=>S.links.splice(i,1),
+   delImg:()=>{if(S.images.length>1)S.images.splice(i,1);else toast('لازم تفضل صورة واحدة على الأقل')},
+   mainImg:()=>S.images.unshift(S.images.splice(i,1)[0])})[a.dataset.act]();
+ save();renderAdmin()});
+$('#reset').onclick=()=>{if(confirm('هترجع كل الإعدادات للافتراضي. متأكد؟')){S=JSON.parse(JSON.stringify(DEF));save();renderAdmin()}};
+Object.assign(PANELS,{
+ countdown:()=>{const c=S.countdown,loc=c.end?new Date(new Date(c.end)-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16):'';
+  return `<label class="flex items-center gap-2"><input type="checkbox" style="width:auto" data-chk="countdown.on" ${c.on?'checked':''}> تفعيل المؤقت في الصفحة</label>`+F('عنوان المؤقت','countdown.title')+`<div><label>وقت انتهاء العرض</label><input type="datetime-local" data-dt="countdown.end" value="${loc}"></div><div class="flex gap-2 flex-wrap">${[1,3,7].map(d=>`<button class="btn o" data-act="plus" data-i="${d}">+${d} يوم من الآن</button>`).join('')}</div>`+F('النص بعد انتهاء المؤقت','countdown.after')},
+ order:()=>F('رقم واتساب لاستقبال الطلبات (بالكود الدولي بدون +)','whatsapp')+F('عنوان الفورم','form.title')+F('نص زر الإرسال','form.btn')+F('رسالة النجاح','form.ok'),
+ orders:()=>'<div id="ol">جارٍ التحميل…</div>',
+ account:()=>`<div><label>كلمة المرور الحالية</label><input type="password" id="op" autocomplete="current-password"></div><div><label>كلمة المرور الجديدة</label><input type="password" id="np" autocomplete="new-password"></div><button class="btn" data-pw>تغيير كلمة المرور</button>`
+});
+const _ra=renderAdmin;renderAdmin=function(){_ra();if(tab==='orders')loadOrders()};
+async function loadOrders(){try{const o=await api('orders');$('#ol').innerHTML=o.length?o.map(r=>`<div class="card p-3 text-sm mb-3"><b>${esc(r.name)}</b> — <span dir="ltr">${esc(r.phone)}${r.phone2?' / '+esc(r.phone2):''}</span> <span class="opacity-60">${esc(r.created_at)}</span><div>${esc(r.governorate||'')} - ${esc(r.address)}</div><div>الكمية: ${r.qty}${r.notes?' — '+esc(r.notes):''}</div><button class="btn r mt-2" data-del="${r.id}">حذف</button></div>`).join(''):'لا توجد طلبات بعد.'}catch(e){$('#ol').textContent=e.message}}
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset.chk){set(t.dataset.chk,t.checked);save()}if(t.dataset.dt){const v=new Date(t.value);if(!isNaN(v)){set(t.dataset.dt,v.toISOString());save()}}});
+document.addEventListener('click',async e=>{const t=e.target;
+ if(t.dataset.del){if(confirm('حذف الطلب؟')){await api('orders/'+t.dataset.del,'DELETE');loadOrders()}}
+ if('pw' in t.dataset)api('password','POST',{old:$('#op').value,new:$('#np').value}).then(()=>{alert('تم تغيير كلمة المرور');$('#op').value=$('#np').value=''},x=>alert(x.message));
+ if('out' in t.dataset){await api('logout','POST');location.reload()}});
+function showGate(setup){$('#gate').classList.remove('hidden');$('#gt').textContent=setup?'إنشاء حساب الأدمن':'تسجيل الدخول';$('#gb').textContent=setup?'إنشاء الحساب':'دخول';$('#gp').autocomplete=setup?'new-password':'current-password';
+ $('#gf').onsubmit=async e=>{e.preventDefault();try{await api(setup?'setup':'login','POST',Object.fromEntries(new FormData(e.target)));init()}catch(x){$('#ge').textContent=x.message}}}
+async function init(){const me=await api('me');if(!me.user)return showGate(me.setup);await loadSettings();{const sv=await api('settings');if(Object.keys(DEF).some(k=>!(k in sv)))save()}$('#gate').classList.add('hidden');$('#admin').classList.remove('hidden');renderAdmin()}
+const TPL={bundles:{label:'باقة جديدة',qty:1,price:0},trust:{icon:'✅',text:'ميزة جديدة'},reviews:{name:'عميل',text:'رأي العميل',stars:5},faq:{q:'سؤال؟',a:'الإجابة'}};
+const LIST=(k,fs)=>(S[k]||[]).map((it,i)=>`<div class="card p-3 space-y-2">${fs.map(([l,p,t])=>F(l,`${k}.${i}.${p}`,t)).join('')}<button class="btn r" data-ldel="${k}:${i}">🗑 حذف</button></div>`).join('')+`<button class="btn" data-ladd="${k}">+ إضافة</button>`;
+const putImg=async d=>{try{return (await api('upload','POST',{data:d})).url}catch(e){return d}};
+const _pp=PANELS.price;
+Object.assign(PANELS,{
+ price:()=>_pp()+`<h3 class="font-bold pt-2">عدّاد المخزون</h3><label class="flex items-center gap-2"><input type="checkbox" style="width:auto" data-chk="stock.on" ${S.stock.on?'checked':''}> إظهار العدّاد</label>`+F('النص ({n} = العدد)','stock.text')+F('الكمية المتبقية (بتعدّلها يدوي)','stock.left','number'),
+ bundles:()=>'<p class="text-sm opacity-70">الباقات بتظهر كاختيارات في فورم الطلب. لو مسحتها كلها هيظهر حقل "الكمية" العادي.</p>'+LIST('bundles',[['اسم الباقة','label'],['عدد القطع','qty','number'],['سعر الباقة','price','number']]),
+ shipping:()=>F('سعر الشحن الافتراضي','shipping.default','number')+F('شحن مجاني للطلبات من (٠ = بدون)','shipping.free','number')+'<h3 class="font-bold">سعر خاص لكل محافظة (اتركه فاضي لاستخدام الافتراضي، واكتب ٠ لشحن مجاني)</h3><div class="grid grid-cols-2 sm:grid-cols-3 gap-3">'+GOV.map(g=>F(g,'shipping.byGov.'+g)).join('')+'</div>',
+ trust:()=>LIST('trust',[['أيقونة (إيموجي)','icon'],['النص','text']]),
+ reviews:()=>F('عنوان القسم','revTitle')+LIST('reviews',[['الاسم','name'],['التعليق','text','area'],['عدد النجوم (١-٥)','stars','number']]),
+ faq:()=>F('عنوان القسم','faqTitle')+LIST('faq',[['السؤال','q'],['الإجابة','a','area']]),
+ track:()=>'<p class="text-sm opacity-70">اكتب المعرّفات فقط (مش الكود كامل). بيتسجل حدث "طلب جديد" عند إرسال الفورم.</p>'+F('Facebook Pixel ID','track.fb')+F('TikTok Pixel ID','track.tt')+F('Google Analytics (مثال G-XXXXXXX)','track.ga'),
+ notify:()=>'<p class="text-sm opacity-70">١) اعمل بوت من @BotFather وخد التوكن. ٢) ابعت للبوت رسالة. ٣) هات Chat ID بتاعك من @userinfobot. التوكن بيتخزن على السيرفر فقط ومش بيظهر للزوار.</p><div><label>Bot Token</label><input id="tgt" autocomplete="off"></div><div><label>Chat ID</label><input id="tgc" autocomplete="off"></div><div class="flex gap-2"><button class="btn" data-sec>حفظ</button><button class="btn o" data-sectest>إرسال رسالة تجربة</button></div><p id="secm" class="text-sm" role="status"></p>'
+});
+PANELS.gallery=(g=>()=>g()+F('رابط فيديو يوتيوب (اختياري)','video'))(PANELS.gallery);
+const _rb=renderAdmin;renderAdmin=function(){_rb();if(tab==='notify')api('secrets').then(k=>{$('#tgc').value=k.tgChat||'';$('#tgt').placeholder=k.tgToken?'•••• محفوظ — اتركه فاضي لو مش هتغيره':'123456:ABC...'},()=>{})};
+const STS=['جديد','تم التأكيد','تم الشحن','تم التسليم','ملغي'];let ORD=[];
+async function loadOrders(){try{ORD=await api('orders');
+ $('#ol').innerHTML=`<div id="ostats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3"></div><p id="otop" class="text-sm mb-3"></p><div class="flex gap-2 flex-wrap mb-3"><input id="oq" placeholder="بحث بالاسم أو الرقم أو العنوان" style="flex:1;min-width:10rem"><select id="ofs" style="width:auto"><option value="">كل الحالات</option>${STS.map(s=>`<option>${s}</option>`).join('')}</select><button class="btn o" data-csv>⬇ تصدير Excel</button></div><div id="olist"></div>`;drawOrders()}catch(e){$('#ol').textContent=e.message}}
+function drawOrders(){if(!$('#olist'))return;const q=($('#oq').value||'').trim(),fs=$('#ofs').value,now=Date.now(),ts=r=>new Date(String(r.created_at).replace(' ','T')+'Z').getTime(),ok=ORD.filter(r=>r.status!=='ملغي'),gv={};
+ ok.forEach(r=>{if(r.governorate)gv[r.governorate]=(gv[r.governorate]||0)+1});
+ const C=(l,v)=>`<div class="card p-3 text-center"><div class="text-2xl font-bold">${v}</div><div class="text-xs opacity-70">${l}</div></div>`;
+ $('#ostats').innerHTML=C('طلبات اليوم',fmt(ok.filter(r=>now-ts(r)<864e5).length))+C('آخر ٧ أيام',fmt(ok.filter(r=>now-ts(r)<6048e5).length))+C('كل الطلبات',fmt(ok.length))+C('المبيعات (بدون الملغي)',fmt(ok.reduce((a,r)=>a+(+r.total||0),0))+' '+esc(S.currency));
+ $('#otop').textContent='أكتر المحافظات طلباً: '+(Object.entries(gv).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([g,n])=>g+' ('+n+')').join('، ')||'—');
+ const L=ORD.filter(r=>(!fs||r.status===fs)&&(!q||[r.name,r.phone,r.phone2,r.address,r.governorate].join(' ').includes(q)));
+ $('#olist').innerHTML=L.length?L.map(r=>`<div class="card p-3 text-sm mb-3 space-y-1"><div class="flex justify-between gap-2 flex-wrap"><b>${esc(r.name)}</b><select data-st="${r.id}" style="width:auto">${STS.map(s=>`<option ${s===r.status?'selected':''}>${s}</option>`).join('')}</select></div><div dir="ltr" style="text-align:right">${esc(r.phone)}${r.phone2?' / '+esc(r.phone2):''}</div><div>${esc(r.governorate||'')} - ${esc(r.address)}</div><div>${esc(r.bundle||('الكمية: '+r.qty))} — الإجمالي: <b>${fmt(r.total)}</b> (شحن ${fmt(r.shipping)})</div>${r.notes?`<div>📝 ${esc(r.notes)}</div>`:''}<div class="opacity-60">${new Date(String(r.created_at).replace(' ','T')+'Z').toLocaleString('ar-EG')}</div><button class="btn r" data-del="${r.id}">حذف</button></div>`).join(''):'لا توجد طلبات مطابقة.'}
+function exportCsv(){const H=['رقم','التاريخ','الاسم','الموبايل','موبايل إضافي','المحافظة','العنوان','الباقة','الكمية','الشحن','الإجمالي','الحالة','ملاحظات'],c=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ const rows=ORD.map(r=>[r.id,r.created_at,r.name,r.phone,r.phone2,r.governorate,r.address,r.bundle,r.qty,r.shipping,r.total,r.status,r.notes].map((v,i)=>(i===3||i===4)?(v?`="${v}"`:'""'):c(v)).join(','));
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+[H.map(c).join(','),...rows].join('\r\n')],{type:'text/csv;charset=utf-8'}));a.download='orders.csv';a.click()}
+document.addEventListener('input',e=>{if(e.target.id==='oq')drawOrders()});
+document.addEventListener('change',e=>{const t=e.target;if(t.id==='ofs')drawOrders();if(t.dataset.st)api('orders/'+t.dataset.st,'PATCH',{status:t.value}).then(()=>{const o=ORD.find(x=>x.id==t.dataset.st);if(o)o.status=t.value;drawOrders()},x=>alert(x.message))});
+document.addEventListener('click',e=>{const t=e.target,a=t.dataset.ladd,d=t.dataset.ldel;
+ if(a){S[a].push(structuredClone(TPL[a]));save();renderAdmin()}
+ if(d){const[k
