@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>المنتج</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>
+:root{--primary:#0e7c86;--accent:#ff5a36;--bg:#eef3f4;--text:#12262b;--card:#ffffff;
+ --a-bg:#f1f5f9;--a-card:#fff;--a-text:#0f172a;--a-line:#e2e8f0;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--a-bg:#0b1220;--a-card:#131c2e;--a-text:#e5edf8;--a-line:#26324a}}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{font-family:'Tajawal',sans-serif;margin:0;background:var(--bg);color:var(--text)}
+h1,h2,h3,.hd{font-family:'Readex Pro','Tajawal',sans-serif}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.prod-img{border-radius:28px 28px 28px 80px;box-shadow:0 30px 60px -30px color-mix(in srgb,var(--primary) 60%,transparent)}
+#lb{display:none}#lb.on{display:flex}
+section[id]{scroll-margin-top:5rem}
+.f{width:100%;border:1px solid color-mix(in srgb,var(--text) 22%,transparent);border-radius:12px;padding:.7rem .9rem;background:var(--bg);color:var(--text);font:inherit}
+</style>
+</head>
+<body>
+<div id="site"></div>
+<!-- lightbox -->
+<div id="lb" class="fixed inset-0 z-50 bg-black/85 items-center justify-center p-4" role="dialog" aria-label="عرض الصورة">
+  <button id="lbx" class="absolute top-4 left-4 text-white text-3xl" aria-label="إغلاق">✕</button>
+  <img id="lbi" alt="" class="max-h-full max-w-full rounded-xl">
+</div>
+
+<script src="/shared.js"></script>
+<script>
+function renderSite(){
+ applyColors();
+ const pct=S.oldPrice>S.price?Math.round((1-S.price/S.oldPrice)*100):0;
+ $('#site').innerHTML=`
+ <header class="sticky top-0 z-30 backdrop-blur" style="background:color-mix(in srgb,var(--bg) 88%,transparent)">
+  <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+   <a href="#top" class="hd font-bold text-xl flex items-center gap-2"><img src="${esc(logoSrc())}" alt="" class="h-9 w-9 rounded-lg object-contain">${esc(S.siteName)}</a>
+   <nav class="hidden md:flex gap-6 font-medium"><a href="#features">المميزات</a><a href="#gallery">المعرض</a><a href="#contact">تواصل</a></nav>
+  </div></header>
+
+ <section id="top" class="max-w-6xl mx-auto px-4 pt-10 pb-16 grid md:grid-cols-2 gap-10 items-center">
+  <div>
+   ${S.badge?`<span class="inline-block rounded-full px-4 py-1 text-sm font-bold text-white mb-4" style="background:var(--accent)">${esc(S.badge)}</span>`:''}
+   <h1 class="hd font-bold leading-tight text-4xl md:text-5xl">${esc(S.heroTitle)}</h1>
+   <p class="mt-4 text-lg opacity-80 max-w-md">${esc(S.heroSub)}</p>
+   <div class="mt-6 rounded-2xl p-5 inline-block min-w-[16rem]" style="background:var(--card)">
+    <div class="font-bold text-lg">${esc(S.productName)}</div>
+    <div class="flex items-end gap-3 mt-2 flex-wrap">
+     <span class="hd font-bold text-4xl" style="color:var(--accent)">${fmt(S.price)} <small class="text-base">${esc(S.currency)}</small></span>
+     ${S.oldPrice>S.price?`<span class="line-through opacity-50 text-lg">${fmt(S.oldPrice)} ${esc(S.currency)}</span><span class="rounded-md px-2 py-0.5 text-sm font-bold text-white" style="background:var(--primary)">خصم ${fmt(pct)}٪</span>`:''}
+    </div>
+    <div id="cd"></div>${stockHTML()}
+    <a href="#order" class="mt-4 block text-center rounded-xl py-3 font-bold text-white text-lg" style="background:var(--accent)">${esc(S.cta)}</a>
+   </div>
+  </div>
+  <img src="${esc(S.images[0]||'')}" alt="${esc(S.productName)}" class="prod-img w-full aspect-square object-cover">
+ </section>
+
+ <section class="max-w-6xl mx-auto px-4 pb-16">
+  <div class="rounded-3xl p-6 md:p-10 grid md:grid-cols-3 gap-6" style="background:var(--card)">
+   <div><h2 class="hd font-bold text-2xl">${esc(S.productName)}</h2></div>
+   <p class="md:col-span-2 text-lg leading-8 opacity-85">${esc(S.desc)}</p>
+  </div>
+ </section>
+
+${S.trust.length?`<section class="max-w-6xl mx-auto px-4 pb-16"><div class="grid sm:grid-cols-3 gap-4">${S.trust.map(t=>`<div class="flex items-center gap-3 rounded-2xl p-4" style="background:var(--card)"><span class="text-2xl">${esc(t.icon)}</span><b>${esc(t.text)}</b></div>`).join('')}</div></section>`:''}
+ <section id="features" class="max-w-6xl mx-auto px-4 pb-16">
+  <h2 class="hd font-bold text-3xl mb-8">${esc(S.featTitle)}</h2>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+   ${S.features.map(f=>`<div class="rounded-2xl p-5" style="background:var(--card)"><div class="text-3xl mb-3">${esc(f.icon)}</div><h3 class="font-bold text-lg mb-1">${esc(f.title)}</h3><p class="opacity-75">${esc(f.text)}</p></div>`).join('')}
+  </div>
+ </section>
+
+ <section id="gallery" class="max-w-6xl mx-auto px-4 pb-16">
+  <h2 class="hd font-bold text-3xl mb-8">${esc(S.galTitle)}</h2>
+  ${videoHTML()}
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+   ${S.images.map((s,i)=>`<button data-lb="${i}" class="overflow-hidden rounded-2xl aspect-square"><img src="${esc(s)}" alt="صورة ${i+1}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"></button>`).join('')}
+  </div>
+ </section>
+
+${S.reviews.length?`<section class="max-w-6xl mx-auto px-4 pb-16"><h2 class="hd font-bold text-3xl mb-8">${esc(S.revTitle)}</h2><div class="grid md:grid-cols-3 gap-5">${S.reviews.map(r=>`<figure class="rounded-2xl p-5" style="background:var(--card)"><div style="color:var(--accent)" aria-label="${esc(r.stars)} من 5">${st(r.stars)}</div><blockquote class="my-2">${esc(r.text)}</blockquote><figcaption class="font-bold">${esc(r.name)}</figcaption></figure>`).join('')}</div></section>`:''}
+ <section id="order" class="max-w-xl mx-auto px-4 pb-16"><div class="rounded-3xl p-6 md:p-8" style="background:var(--card)">
+  <h2 class="hd font-bold text-2xl mb-1">${esc(S.form.title)}</h2>
+  <p class="opacity-70 mb-5">${esc(S.productName)} — ${fmt(S.price)} ${esc(S.currency)}</p>
+  <form id="of" class="space-y-3">
+   <input name="name" required minlength="2" maxlength="80" autocomplete="name" placeholder="الاسم بالكامل" class="f">
+   <input name="phone" required inputmode="tel" autocomplete="tel" maxlength="20" placeholder="رقم الموبايل" class="f">
+   <input name="phone2" inputmode="tel" maxlength="20" placeholder="رقم موبايل إضافي (اختياري)" class="f">
+   <select name="governorate" required aria-label="المحافظة" class="f"><option value="">اختر المحافظة</option>${GOV.map(g=>`<option>${g}</option>`).join('')}</select>
+   <input name="address" required minlength="5" maxlength="250" autocomplete="street-address" placeholder="العنوان بالتفصيل (المدينة - الشارع - رقم المبنى)" class="f">
+   ${bundlesHTML()}
+   <input name="notes" maxlength="300" placeholder="ملاحظات (اختياري)" class="f">
+   <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0">
+   <div id="sum" class="rounded-xl p-3 text-sm space-y-1" style="background:var(--bg)"></div>
+   <button class="w-full rounded-xl py-3 font-bold text-white text-lg disabled:opacity-60" style="background:var(--accent)">${esc(S.form.btn)}</button>
+   <p id="om" class="text-center font-bold" role="status"></p>
+  </form></div></section>
+
+${S.faq.length?`<section id="faq" class="max-w-3xl mx-auto px-4 pb-16"><h2 class="hd font-bold text-3xl mb-6">${esc(S.faqTitle)}</h2>${S.faq.map(f=>`<details class="rounded-2xl p-4 mb-3" style="background:var(--card)"><summary class="font-bold cursor-pointer">${esc(f.q)}</summary><p class="mt-2 opacity-80">${esc(f.a)}</p></details>`).join('')}</section>`:''}
+ <footer id="contact" class="text-white" style="background:var(--text)">
+  <div class="max-w-6xl mx-auto px-4 py-10 grid md:grid-cols-3 gap-8">
+   <div><div class="hd font-bold text-xl flex items-center gap-2 mb-3"><img src="${esc(logoSrc())}" alt="" class="h-9 w-9 rounded-lg object-contain">${esc(S.siteName)}</div><p class="opacity-70">${esc(S.footerText)}</p></div>
+   <div><h3 class="font-bold mb-3">روابط</h3><ul class="space-y-2 opacity-80">${S.links.map(l=>`<li><a href="${esc(l.u)}">${esc(l.t)}</a></li>`).join('')}</ul></div>
+   <div><h3 class="font-bold mb-3">تواصل معنا</h3><p class="opacity-80" dir="ltr" style="text-align:right">${esc(S.phone)}</p><p class="opacity-80">${esc(S.email)}</p></div>
+  </div>
+  <div class="border-t border-white/10 text-center text-sm py-4 opacity-60">© ${new Date().getFullYear()} ${esc(S.siteName)}</div>
+ </footer>`;
+}
+const st=n=>{n=Math.min(5,Math.max(0,Math.round(+n||0)));return '★'.repeat(n)+'☆'.repeat(5-n)};
+const ytId=u=>(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/.exec(u||'')||[])[1];
+const videoHTML=()=>{const id=ytId(S.video);return id?`<div class="mb-5 overflow-hidden rounded-2xl aspect-video"><iframe class="w-full h-full" src="https://www.youtube-nocookie.com/embed/${id}" title="فيديو المنتج" allowfullscreen loading="lazy"></iframe></div>`:''};
+const stockHTML=()=>S.stock.on?`<div class="mt-3 text-sm font-bold" style="color:var(--accent)">🔥 ${S.stock.left>0?esc(S.stock.text.replace('{n}',fmt(S.stock.left))):'نفدت الكمية حالياً'}</div>`:'';
+const bundlesHTML=()=>S.bundles.length?`<fieldset class="space-y-2"><legend class="font-bold mb-1">اختر الباقة</legend>${S.bundles.map((b,i)=>`<label class="flex items-center justify-between gap-3 rounded-xl border p-3 cursor-pointer" style="border-color:color-mix(in srgb,var(--text) 22%,transparent)"><span class="flex items-center gap-2"><input type="radio" name="bundle" value="${i}" ${i===0?'checked':''}>${esc(b.label)}</span><b>${fmt(b.price)} ${esc(S.currency)}</b></label>`).join('')}</fieldset>`:`<input name="qty" type="number" min="1" max="99" value="1" aria-label="الكمية" class="f">`;
+function sum(){const f=$('#of');if(!f)return;const d=Object.fromEntries(new FormData(f)),b=S.bundles[d.bundle],qty=b?b.qty:Math.max(1,+d.qty||1),sub=b?+b.price:S.price*qty,sh=d.governorate?shipFor(d.governorate,sub):null;
+ $('#sum').innerHTML=`<div class="flex justify-between"><span>المنتج (${fmt(qty)})</span><b>${fmt(sub)} ${esc(S.currency)}</b></div><div class="flex justify-between"><span>الشحن</span><b>${sh===null?'يتحدد بعد اختيار المحافظة':sh?fmt(sh)+' '+esc(S.currency):'مجاني'}</b></div>`+(sh===null?'':`<div class="flex justify-between text-base font-bold"><span>الإجمالي</span><span style="color:var(--accent)">${fmt(sub+sh)} ${esc(S.currency)}</span></div>`)}
+function track(){try{window.fbq&&fbq('track','Lead');window.ttq&&ttq.track('SubmitForm');window.gtag&&gtag('event','generate_lead')}catch(e){}}
+function initTrack(){const T=S.track||{},id=x=>String(x||'').replace(/[^\w-]/g,'');
+ if(id(T.fb)){(function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)})(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init',id(T.fb));fbq('track','PageView')}
+ if(id(T.tt)){const w=window,t='ttq',q=w[t]=w[t]||[];q.methods=['page','track','identify'];q.methods.forEach(m=>{q[m]=function(){q.push([m].concat([].slice.call(arguments)))}});q.load=function(e){q._i=q._i||{};q._i[e]=[];q._t=q._t||{};q._t[e]=+new Date;const s=document.createElement('script');s.async=1;s.src='https://analytics.tiktok.com/i18n/pixel/events.js?sdkid='+e+'&lib='+t;document.head.appendChild(s)};w.TiktokAnalyticsObject=t;q.load(id(T.tt));q.page()}
+ if(id(T.ga)){const g=id(T.ga),sc=document.createElement('script');sc.async=1;sc.src='https://www.googletagmanager.com/gtag/js?id='+g;document.head.appendChild(sc);window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config',g)}}
+let timer;
+function tick(){const c=S.countdown,el=$('#cd');if(!el)return;clearInterval(timer);if(!c.on){el.innerHTML='';return}
+ const U=[['يوم',864e5,1e9],['ساعة',36e5,24],['دقيقة',6e4,60],['ثانية',1e3,60]];
+ const draw=()=>{const t=new Date(c.end)-Date.now();if(isNaN(t))return;
+  if(t<=0){el.innerHTML=`<div class="font-bold text-center py-2 mt-3" style="color:var(--accent)">${esc(c.after)}</div>`;clearInterval(timer);return}
+  el.innerHTML=`<div class="text-sm font-bold mt-4 mb-2">${esc(c.title)}</div><div class="grid grid-cols-4 gap-2" aria-live="off">`+U.map(([l,m,k])=>`<div class="rounded-xl text-center py-2 text-white" style="background:var(--text)"><div class="hd font-bold text-2xl">${String(Math.floor(t/m)%k).padStart(2,'0')}</div><div class="text-xs opacity-70">${l}</div></div>`).join('')+'</div>'};
+ draw();timer=setInterval(draw,1000)}
+function bind(){tick();$('#of').addEventListener('input',sum);sum();
+ $('#of').onsubmit=async e=>{e.preventDefault();const b=e.target.querySelector('button'),om=$('#om');b.disabled=true;om.textContent='';
+  try{const r=await fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(e.target)))});const j=await r.json();if(!r.ok)throw new Error(j.error);
+   om.style.color='var(--primary)';om.textContent=S.form.ok;track();setTimeout(()=>{location.href=j.wa},900)}
+  catch(x){om.style.color='var(--accent)';om.textContent=x.message||'حصل خطأ، حاول تاني';b.disabled=false}}}
+document.addEventListener('click',e=>{const l=e.target.closest('[data-lb]');if(l){$('#lbi').src=S.images[l.dataset.lb];$('#lb').classList.add('on')}else if(e.target.closest('#lb'))$('#lb').classList.remove('on')});
+document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]');if(!a)return;const el=document.getElementById(a.getAttribute('href').slice(1));if(el){e.preventDefault();el.scrollIntoView({behavior:'smooth'})}});
+(async()=>{await loadSettings();initTrack();renderSite();bind()})();
+</script>
+</body>
+</html>
